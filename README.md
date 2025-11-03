@@ -1,104 +1,106 @@
-# 🎯 PP1 Projekat – Mikrojava Compiler
+# 🎯 PP1 Project – Mikrojava Compiler
 
-Ovaj repozitorijum sadrži moj projekat iz predmeta **Programski prevodioci 1 (PP1)** na Elektrotehničkom fakultetu u Beogradu.  
-Cilj projekta je implementacija **prevodioca za jezik Mikrojava** sa podrškom za sve faze obrade programa: leksičku, sintaksnu, semantičku analizu i generisanje bajtkoda.
+This repository contains my project for the **Compilers (PP1)** course at the School of Electrical Engineering, University of Belgrade.  
+The goal of this project is to implement a **compiler for the Mikrojava language**, supporting all stages of compilation: lexical, syntax, and semantic analysis, as well as code generation.
 
 ---
 
-## 📁 Struktura projekta
+## 📁 Project Structure
 
 ```
 ProjekatPP1/
- ├── spec/      → Leksička i sintaksna specifikacija (.lex, .cup)
- ├── src/       → Izvorni kod (Java fajlovi – analizatori, semantika, generator koda)
- ├── test/      → Test primeri (.mj fajlovi sa Mikrojava kodom)
- ├── README.md  → Opis projekta
- └── .gitignore → Ignorisani fajlovi (IDE, .class, out, build itd.)
+ ├── spec/      → Lexical and syntax specifications (.lex, .cup)
+ ├── src/       → Source code (Java files – analyzers, semantics, code generator)
+ ├── test/      → Test programs (.mj files written in Mikrojava)
+ ├── README.md  → Project description
+ └── .gitignore → Ignored files (IDE configs, .class, out, build, etc.)
 ```
 
-- **spec/** – sadrži `mjlexer.lex` i `mjparser.cup` fajlove koji definišu tokene i gramatička pravila jezika.  
-- **src/** – implementacija semantičke analize (`SemanticPass`), generisanja koda (`CodeGenerator`), i dodatnih klasa (`SyntaxTreePrinter`, novi tipovi čvorova, itd.).  
-- **test/** – primeri Mikrojava programa korišćeni za testiranje svih funkcionalnosti po nivoima (A, B, C).
+- **spec/** – contains `mjlexer.lex` and `mjparser.cup` which define the lexical tokens and grammar rules.  
+- **src/** – implementation of the semantic analyzer (`SemanticPass`), code generator (`CodeGenerator`), and supporting classes (`SyntaxTreePrinter`, new AST node types, etc.).  
+- **test/** – sample Mikrojava programs used to test functionality for levels A, B, and C.
 
 ---
 
-## ⚙️ Faze rada kompajlera
+## ⚙️ Compiler Phases
 
-1. **Leksička analiza**  
-   - Prepoznaje osnovne elemente jezika (tokene) pomoću **JFlex** alata.  
-   - Definiše ključne reči, identifikatore, konstante i operatore.
+1. **Lexical Analysis**  
+   - Implemented using **JFlex**.  
+   - Recognizes tokens such as keywords, identifiers, constants, and operators.
 
-2. **Sintaksna analiza**  
-   - Kreira sintaksno stablo pomoću **CUP** parser generatora.  
-   - Proverava da li program poštuje gramatička pravila jezika.
+2. **Syntax Analysis**  
+   - Implemented using **CUP** parser generator.  
+   - Builds the syntax tree and verifies grammatical correctness.
 
-3. **Semantička analiza**  
-   - Proverava tipove, deklaracije i pravila jezika.  
-   - Otkriva greške koje nisu sintaksne (npr. pogrešni tipovi izraza).
+3. **Semantic Analysis**  
+   - Implemented in the `SemanticPass.java` class.  
+   - Validates type rules, variable declarations, and semantic correctness of expressions and statements.
 
-4. **Generisanje koda**  
-   - Pretvara sintaksno stablo u bajtkod koji se može izvršiti u **Mikrojava emulatoru**.
-
----
-
-## 🧩 Nivoi projekta
-
-### 🔹 **NIVO A – Osnovne konstrukcije i rad sa nizovima i skupovima**
-
-Na ovom nivou implementirano je generisanje koda za osnovne programske konstrukcije.  
-Podržani su aritmetički izrazi, pozivi predefinisanih metoda, rad sa nizovima i skupovima celih brojeva, kao i operacije unije nad skupovima.  
-Program mora da sadrži funkciju `main`, kao i globalne i lokalne promenljive (proste i nizovne).
-
-### 🔹 **NIVO B – Kontrolne strukture i funkcije**
-
-Na drugom nivou dodate su sve konstrukcije iz nivoa A, uz implementaciju kontrolnih struktura (`if`, `else`, `do-while`, `break`, `continue`), kao i funkcija sa i bez povratne vrednosti.  
-Podržani su uslovni izrazi, logičke operacije (`&&`, `||`), i mogućnost pozivanja globalnih funkcija i metoda između jedinica programa.
-
-### 🔹 **NIVO C – Objektno-orijentisane ekstenzije**
-
-Treći nivo proširuje Mikrojava jezik podrškom za **objektno-orijentisano programiranje**.  
-Implementirano je nasleđivanje klasa, kreiranje objekata i nizova objekata, interfejsi sa podrazumevanim metodama, kao i tabele virtuelnih funkcija koje omogućavaju **polimorfno pozivanje metoda**.  
-Na ovom nivou omogućena je i **supstitucija** – prosleđivanje objekata izvedenih klasa tamo gde se očekuju reference na osnovne klase ili interfejse.
+4. **Code Generation**  
+   - Implemented in `CodeGenerator.java`.  
+   - Produces bytecode executable by the **Mikrojava virtual machine**.
 
 ---
 
-## 🚀 Pokretanje projekta
+## 🧩 Project Levels
 
-1. Generisanje analizatora:
+### 🔹 **LEVEL A – Basic Constructs, Arrays, and Sets**
+
+This level includes implementation of all basic program constructs such as assignments, arithmetic expressions, and calls to predefined functions.  
+Support is added for arrays of primitive types and **sets of integers**, including union operations between sets.  
+Programs must include a `main` function, as well as global and local variables (both primitive and array types).
+
+### 🔹 **LEVEL B – Control Structures and Functions**
+
+This level extends Level A with implementation of control structures (`if`, `else`, `do-while`, `break`, `continue`), return statements, and global method calls.  
+It also introduces conditional and logical expressions (`&&`, `||`) and function calls with parameters.  
+This level enables structured programming with nested blocks and correct scoping rules.
+
+### 🔹 **LEVEL C – Object-Oriented Extensions**
+
+Level C adds full **object-oriented programming (OOP)** support to Mikrojava.  
+It implements class inheritance, object and array instantiation, interfaces with default methods, virtual function tables (VFT), and **polymorphic method calls**.  
+Additionally, **substitution** is supported — allowing derived class objects to be passed where base class or interface references are expected.
+
+---
+
+## 🚀 Running the Project
+
+1. Generate analyzers:
    ```bash
    java -jar tools/JFlex.jar spec/mjlexer.lex
    java -jar tools/java-cup-11b.jar -parser MJParser -symbols sym spec/mjparser.cup
    ```
 
-2. Kompajliranje svih Java fajlova:
+2. Compile all Java files:
    ```bash
    javac -cp .;tools/java-cup-11b-runtime.jar src/**/*.java
    ```
 
-3. Pokretanje test programa:
+3. Run a test program:
    ```bash
    java -cp .;tools/java-cup-11b-runtime.jar rs.etf.pp1.MJParser test/test1.mj
    ```
 
-Ako je kod ispravan, generiše se `.obj` fajl koji se može pokrenuti pomoću **Mikrojava emulatora**.
+If compilation succeeds, an `.obj` file is generated and can be executed using the **Mikrojava emulator**.
 
 ---
 
-## 📌 Napomene
+## 📌 Notes
 
-- Projekat je razvijen **na osnovu zvaničnog ETF PP1 skeletona**, ali **u repozitorijumu nisu uključeni originalni fajlovi skeletona**.  
-- U repozitorijumu su ostavljene **samo klase i proširenja koja sam samostalno implementirao**.  
-- Glavne izmene i proširenja izvršene su u:
+- The project is based on the official **ETF PP1 skeleton**, but the original skeleton files are **not included** in this repository.  
+- Only classes and implementations that I developed are part of this project.  
+- Main modifications and extensions are implemented in:
   - `SemanticPass.java`
   - `CodeGenerator.java`
-  - dodatnim tipovima čvorova u AST stablu (ako su korišćeni).
-- Test primeri su ručno pripremljeni tako da pokrivaju sve funkcionalnosti za nivoe A, B i C.
+  - additional AST node types (if used)
+- Test programs were manually created to cover all functionalities for levels A, B, and C.
 
 ---
 
-## 👨‍💻 Autor
+## 👨‍💻 Author
 
 **Nikola Vučićević**  
-Smer: Softversko inženjerstvo  
-Elektrotehnički fakultet, Univerzitet u Beogradu  
-Godina: 2025.
+Software Engineering Department  
+School of Electrical Engineering, University of Belgrade  
+Year: 2025
