@@ -1,0 +1,151 @@
+// Test505 – NIVO C (pametna fabrika)
+
+program test505
+
+const int MAX_ENERGY = 100;
+
+class Masina {
+	int snaga;
+	char oznaka;
+
+	{
+		void postaviSnagu(int s) { this.snaga = s; }
+		void postaviOznaku(char o) { this.oznaka = o; }
+
+		int potrosnja() { return snaga * 2; }
+
+		void ispisi() {
+			print(oznaka); print(':'); print(snaga);
+			print(' '); print(potrosnja());
+			print(eol);
+		}
+	}
+}
+
+class Robot extends Masina {
+	int baterija;
+	{
+		void postaviBateriju(int b) { this.baterija = b; }
+		int potrosnja() { return (snaga * 3) - baterija; }
+		void napuni() { baterija = MAX_ENERGY; }
+	}
+}
+
+class Traka extends Masina {
+	int duzina;
+	{
+		void postaviDuzinu(int d) { this.duzina = d; }
+		int potrosnja() { return (snaga * duzina) / 2; }
+	}
+}
+
+interface Upravljivo {
+	void start() {
+		print('S'); print('T'); print('A'); print('R'); print('T'); print(eol);
+	}
+	int status();
+}
+
+class KontrolnaTabla extends Upravljivo {
+	int stanje;
+	{
+		void start() {
+			print('S'); print('Y'); print('S'); print(' '); print('O'); print('N'); print(eol);
+		}
+		int status() { return stanje; }
+	}
+}
+
+class Daljinski extends Upravljivo {
+	int stanje;
+	{
+		int status() { return stanje / 2; }
+	}
+}
+
+int ukupnaPotrosnja;
+int brojMasina;
+
+{
+	void prikaziMasinu(Masina m) {
+		m.ispisi();
+		print('P'); print('=');
+		print(m.potrosnja());
+		print(eol);
+	}
+
+	void main()
+		Masina masine[];
+		Robot r1, r2;
+		Traka t1, t2;
+		Upravljivo u1, u2;
+		int i, energija;
+	{
+		masine = new Masina[4];
+
+		r1 = new Robot();
+		r1.postaviSnagu(20);
+		r1.postaviBateriju(30);
+		r1.postaviOznaku('R');
+
+		r2 = new Robot();
+		r2.postaviSnagu(25);
+		r2.postaviBateriju(40);
+		r2.postaviOznaku('r');
+
+		t1 = new Traka();
+		t1.postaviSnagu(10);
+		t1.postaviDuzinu(5);
+		t1.postaviOznaku('T');
+
+		t2 = new Traka();
+		t2.postaviSnagu(12);
+		t2.postaviDuzinu(8);
+		t2.postaviOznaku('t');
+
+		masine[0] = r1;
+		masine[1] = t1;
+		masine[2] = r2;
+		masine[3] = t2;
+
+		read(energija);
+		i = 0;
+		do {
+			if(i % 2 == 0) masine[i].postaviSnagu(masine[i].snaga + energija);
+			i++;
+		} while(i < 4);
+
+		ukupnaPotrosnja = 0;
+		brojMasina = 0;
+		i = 0;
+		do {
+			prikaziMasinu(masine[i]);
+			ukupnaPotrosnja = ukupnaPotrosnja + masine[i].potrosnja();
+			brojMasina++;
+			i++;
+		} while(i < 4);
+
+		print('U'); print('K'); print('U'); print('P'); print('N'); print('O'); print(':'); print(eol);
+		print(ukupnaPotrosnja);
+		print(eol);
+
+		// Interfejs test
+		u1 = new KontrolnaTabla();
+		u2 = new Daljinski();
+
+		u1.start();
+		print(u1.status()); print(eol);
+
+		print(u2.status()); print(eol);
+		u2.start();
+
+		// Kombinovani uslov
+		if(ukupnaPotrosnja > 500 && brojMasina == 4) print(1);
+		else print(0);
+		print(eol);
+
+		// Map operator – testira energiju/obim funkciju
+		i = masine[0].potrosnja map masine;
+		print(i); print(eol);
+	}
+}

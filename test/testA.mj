@@ -1,0 +1,73 @@
+
+// Test302 – NIVO A
+
+program test302
+
+const int nula = 0;
+const int jedan = 1;
+const int dva = 2;
+const int tri = 3;
+const int pet = 5;
+
+int brojevi[];
+char slova[];
+set skup1, skup2, skup3;
+
+{
+    void main()
+        int rez;
+        int unos;
+    {
+        rez = 0;
+        rez++;
+        rez = rez + tri;
+        print(rez); // 4
+        print(eol);
+        
+        // Testiranje nizova
+        brojevi = new int[3];
+        brojevi[nula] = 2;
+        brojevi[jedan] = 4;
+        brojevi[dva] = brojevi[0] + brojevi[1] * 2;
+        print(brojevi[dva]); // 10
+        print(eol);
+
+        rez = brojevi[dva] / brojevi[nula];
+        print(rez); // 5
+        print(eol);
+        
+        slova = new char[3];
+        slova[0] = 'x';
+        slova[1] = 'y';
+        slova[2] = 'z';
+        print(slova[jedan]); // y
+        print(eol);
+        print(ord(slova[0])); // 120
+        print(eol);
+        
+        // Testiranje unosa
+        read(unos);
+        print(unos);
+        print(eol);
+        
+        rez = (unos * 2 - pet) + (brojevi[1] / dva);
+        print(rez); // zavisi od unosa
+        print(eol);
+        
+        // Testiranje skupova
+        skup1 = new set[5];
+        skup2 = new set[5];
+        skup3 = new set[10];
+        
+        add(skup1, 1); add(skup1, 2); add(skup1, 3);
+        add(skup2, 3); add(skup2, 4); add(skup2, 5);
+        skup3 = skup1 union skup2;
+        print(skup3); // 1 2 3 4 5
+        print(eol);
+        
+        brojevi[0] = 7; brojevi[1] = 8; brojevi[2] = 9;
+        addAll(skup1, brojevi);
+        print(skup1); // 7 8 9
+        print(eol);
+    }
+}

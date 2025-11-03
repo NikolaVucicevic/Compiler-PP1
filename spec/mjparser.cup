@@ -1,0 +1,303 @@
+package rs.ac.bg.etf.pp1;
+
+import java_cup.runtime.*;
+import org.apache.log4j.*;
+import rs.ac.bg.etf.pp1.ast.*;
+
+/* =========================================================
+ *                PARSER ZA MICROJAVA PROŠIRENJE
+ * ---------------------------------------------------------
+ * - podržava klase, interfejse i nasleđivanje
+ * - dodati set i map operatori
+ * - ima oporavak od grešaka na ključnim mestima
+ * ========================================================= */
+
+parser code {:
+
+    // ==========================
+    // GLOBALNA STANJA PARSERA
+    // ==========================
+
+    boolean errorDetected;
+    Logger log = Logger.getLogger(getClass());
+   
+    // ==========================
+    // METODE ZA PRIJAVU GREŠAKA
+    // ==========================
+
+    public void report_fatal_error(String message, Object info) throws java.lang.Exception {
+        done_parsing();
+        report_error(message, info);
+    }
+  
+    public void syntax_error(Symbol cur_token) {
+        report_error("\nSintaksna greska", cur_token);
+    }
+  
+    public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
+        report_fatal_error("Fatalna greska, parsiranje se ne moze nastaviti", cur_token);
+    }
+
+    public void report_error(String message, Object info) {
+        errorDetected = true;
+        StringBuilder msg = new StringBuilder(message); 
+        if (info instanceof Symbol)
+            msg.append(" na liniji ").append(((Symbol)info).left);
+        log.error(msg.toString());
+    }
+
+:}
+
+/* =========================================================
+ *                     INICIJALIZACIJA
+ * ========================================================= */
+
+init with {:
+    errorDetected = false;
+:}
+
+/* =========================================================
+ *                     SCANNER WRAPPER
+ * ---------------------------------------------------------
+ * - omogućava logovanje svakog tokena koji lexer prepozna
+ * ========================================================= */
+
+scan with {:
+    Symbol s = this.getScanner().next_token();
+    if (s != null && s.value != null) 
+        log.info(s.toString() + " " + s.value.toString());
+    return s;
+:}
+
+/* =========================================================
+ *                     TERMINALI
+ * ========================================================= */
+
+terminal PROG, LBRACE, RBRACE, SEMI, LPAREN, RPAREN, EQUAL, RETURN, PLUS, COMMA, PRINT, VOID, MINUS, TIMES, DIV, MOD, DOT, EXTENDS, SET, UNION, CONST;
+terminal Integer NUMBER;
+terminal String IDENT;
+terminal Character CHARCONST;
+terminal Boolean BOOLCONST;
+terminal IF, ELSE, INCR, DECR, READ, LBRACKET, RBRACKET, NEW, BREAK, CONTINUE;
+terminal EQ, NEQ, LT, LE, GT, GE, OR, AND, DO, WHILE, MAP, CLASS, INTERFACE;
+
+/* =========================================================
+ *                     NETERMINALI
+ * ========================================================= */
+
+nonterminal VarDeclList, MethodDeclList, VarDecl, Decl, DeclList, ClassDecl, ConstDecl, VarIdentList, VarArrayIdentList, SetIdentList;
+nonterminal FormPars, StatementList, FormalParamList, FormalParamDecl, Statement, ConstAssignList;
+nonterminal Addop, ActualPars, ActualParamList, Mulop, Relop, Setop;
+nonterminal Matched, Unmatched;
+nonterminal DesignatorStatement, InterfaceDecl, InterfaceMethodList, InterfaceMethod;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodDecl, MethodTypeName, Designator, ClassName, InterfaceName;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Factor, Expr, Condition, CondTerm, CondFact;
+
+/* =========================================================
+ *                     GLAVNI PROGRAM
+ * ========================================================= */
+
+	Program ::= (Program) PROG ProgName:p DeclList LBRACE MethodDeclList RBRACE;
+	ProgName ::= (ProgName) IDENT:progName;
+	
+	/* =========================================================
+	 *                     DEKLARACIJE
+	 * ---------------------------------------------------------
+	 * Varijable, klase, konstante, interfejsi
+	 * ========================================================= */
+	
+	DeclList ::= (DeclListMulti) DeclList Decl
+	           | (NoDecl) /* epsilon */;
+	
+	Decl ::= (DeclVar) VarDecl
+	       | (DeclClass) ClassDecl
+	       | (DeclConst) ConstDecl
+	       | (DeclInterface) InterfaceDecl;
+	
+	/* ---------------- VARIJABLE ---------------- */
+	
+	VarDecl ::= (VarDeclSingleList) Type:varType VarIdentList SEMI
+	          | (VarDeclArrayList) Type:varType VarArrayIdentList SEMI
+	          | (SetDeclList) SET SetIdentList SEMI
+	          | (VarDeclError) error SEMI
+	                {: parser.report_error("Greska u deklaraciji promenljive, preskacem do ;", null); :}
+	          ;
+	
+	VarIdentList ::= (VarDeclSingle) IDENT:varName
+	               | (VarDeclBetween) VarIdentList:list COMMA IDENT:varName;
+	
+	VarArrayIdentList ::= (VarDeclArraySingle) IDENT:varName LBRACKET RBRACKET
+	                    | (VarDeclArrayBetween) VarArrayIdentList:list COMMA IDENT:varName LBRACKET RBRACKET;
+	
+	SetIdentList ::= (SetDeclSingle) IDENT:varName
+	               | (SetDeclBetween) SetIdentList:list COMMA IDENT:varName;
+	
+	/* ---------------- KONSTANTE ---------------- */
+	
+	ConstDecl ::= (ConstDeclList) CONST Type:constType ConstAssignList SEMI;
+	
+	ConstAssignList ::= (ConstDeclarationSingle) IDENT:constName EQUAL Expr:value
+	                  | (ConstDeclarationBetween) ConstAssignList:list COMMA IDENT:constName EQUAL Expr:value;
+	
+	/* ---------------- KLASE I INTERFEJSI ---------------- */
+	
+	ClassDecl ::= (ClassDeclaration) CLASS ClassName:c LBRACE VarDeclList LBRACE MethodDeclList RBRACE RBRACE;
+	
+	ClassName ::= (ClassNameExtends)  IDENT:className EXTENDS IDENT:baseClass
+	            | (ClassNameSingle) IDENT:className
+	            | (ClassNameExtendsError) IDENT:className EXTENDS error
+	                {: parser.report_error("Greška: očekivano ime bazne klase posle 'extends' – preskačem do '{'", null); :}
+	            ;
+	
+	InterfaceDecl ::= (InterfaceDeclaration) INTERFACE InterfaceName:name LBRACE InterfaceMethodList RBRACE;
+	InterfaceName ::= (InterfaceNameSingle) IDENT:interfaceName;
+	InterfaceMethodList ::= (InterfaceMethodListMultiple) InterfaceMethodList InterfaceMethod
+	                      | (SingleInterfaceMethod) InterfaceMethod;
+	
+	/* =========================================================
+	 *                     TIPOVI I METODE
+	 * ========================================================= */
+	
+	VarDeclList ::= (VarDeclarations) VarDeclList VarDecl
+	              | (NoVarDecl) /* epsilon */;
+	
+	Type ::= (Type) IDENT:typeName;
+	
+	MethodDeclList ::= (MethodDeclarations) MethodDeclList MethodDecl
+	                 | (NoMethodDecl) /* epsilon */;
+	
+	MethodDecl ::= (MethodDecl) MethodTypeName LPAREN FormPars RPAREN VarDeclList LBRACE StatementList RBRACE;
+	
+	MethodTypeName ::= (MethodTypeNameA) Type:retType IDENT:methName
+	                 | (VoidMethodTypeName) VOID IDENT:methName;
+	
+	/* ---------------- PARAMETRI ---------------- */
+	
+	FormPars ::= (FormParams) FormalParamList
+	           | (NoFormParam) /* epsilon */
+	           | (FormParamError) error
+	               {: parser.report_error("Greška u listi formalnih parametara – preskačem do ')'", null); :}
+	           ;
+	
+	FormalParamList ::= (FormalParamDecls) FormalParamList COMMA FormalParamDecl
+	                  | (SingleFormalParamDecl) FormalParamDecl;
+	
+	FormalParamDecl ::= (FormalParamDeclA) Type:paramType IDENT:paramName
+	                  | (FormalParamArray) Type:paramType IDENT:paramName LBRACKET  RBRACKET
+	                  | (FormalParamDeclSet) SET IDENT:paramName;
+	
+	/* =========================================================
+	 *                     NAREDBE (STATEMENTS)
+	 * ========================================================= */
+	
+	StatementList ::= (Statements) StatementList Statement
+	                | (NoStmt) /* epsilon */;
+	
+	Statement ::= (MatchedStmt) Matched
+	            | (UnmatchedStmt) Unmatched;
+	
+	/* ---------------- IF / ELSE BLOKOVI ---------------- */
+	
+	Unmatched ::= (UnmatchedIf) IF LPAREN Condition RPAREN Statement
+	             | (UnmatchedIfElse) IF LPAREN Condition RPAREN Matched ELSE Unmatched;
+	
+	Matched ::= (ErrorStmt) error SEMI:l
+	            {: parser.report_error("Izvrsen oporavak do ; u liniji " + lleft, null); :}
+	          | (PrintStmt) PRINT LPAREN Expr:e COMMA NUMBER:n RPAREN SEMI
+	          | (PrintStmtExprOnly) PRINT LPAREN Expr:e RPAREN SEMI
+	          | (ReturnExpr) RETURN Expr SEMI
+	          | (ReturnNoExpr) RETURN SEMI
+	          | (MatchedStatement) IF LPAREN Condition RPAREN Matched ELSE Matched
+	          | (BreakStmt) BREAK SEMI
+	          | (ContinueStmt) CONTINUE SEMI
+	          | (DesignatorStmt) DesignatorStatement SEMI
+	          | (ReadStmt) READ LPAREN Designator RPAREN SEMI
+	          | (BlockStmt) LBRACE StatementList RBRACE
+	          | (DoWhileStmt) DO Matched WHILE LPAREN Condition RPAREN SEMI
+	          | (DoWhileStmtExtra) DO Matched WHILE LPAREN Condition COMMA DesignatorStatement RPAREN SEMI
+	          | (DoWhileEmpty) DO Matched WHILE LPAREN RPAREN SEMI;
+	
+	/* =========================================================
+	 *                     IZRAZI I FAKTORI
+	 * ========================================================= */
+	
+	Expr ::= (AddExpr) Expr:te Addop Term:t
+	       | (TermExpr) Term:t
+	       | (NegExpr) MINUS Term:t
+	       | (MapExpr) Designator:func Setop:st Designator:arr;
+	
+	Term ::= (MulopTerm) Term Mulop Factor
+	       | (SingleFactor) Factor;
+	
+	Factor ::= (ConstNum) NUMBER
+	         | (ConstChar) CHARCONST
+	         | (ConstBool) BOOLCONST
+	         | (Var) Designator:d
+	         | (FuncCall) Designator:func LPAREN ActualPars RPAREN
+	         | (NewArray) NEW Type LBRACKET Expr RBRACKET
+	         | (NewClass) NEW Type LPAREN RPAREN
+	         | (NewSet) NEW SET LBRACKET Expr RBRACKET
+	         | (ParenExpr) LPAREN Expr RPAREN;
+	
+	/* =========================================================
+	 *                     POZIVI I DESIGNATORI
+	 * ========================================================= */
+	
+	ActualPars ::= (Actuals) ActualParamList
+	             | (NoActuals) /* epsilon */;
+	
+	ActualParamList ::= (ActualParams) ActualParamList COMMA Expr
+	                  | (ActualParam) Expr;
+	
+	Designator ::= (DesignatorIdent) IDENT:name
+	             | (ArrayDesignator) IDENT:name LBRACKET Expr RBRACKET
+	             | (FieldAccess) Designator:base DOT IDENT:fieldName;
+	
+	DesignatorStatement ::= (Assignment) Designator:d EQUAL Expr
+	                      | (IncStmt) Designator:d INCR
+	                      | (DecStmt) Designator:d DECR
+	                      | (FuncCallStmt) Designator:d LPAREN ActualPars RPAREN;
+	
+	/* =========================================================
+	 *                     OPERATORI
+	 * ========================================================= */
+	
+	Addop ::= (AddopPlus) PLUS
+	        | (AddopMinus) MINUS;
+	
+	Mulop ::= (MulopTimes) TIMES
+	        | (MulopDiv) DIV
+	        | (MulopMod) MOD;
+	
+	Relop ::= (Equal) EQ
+	        | (NotEqual) NEQ
+	        | (Less) LT
+	        | (LessEqual) LE
+	        | (Greater) GT
+	        | (GreaterEqual) GE;
+	
+	Setop ::= (SetUnion) UNION
+	        | (SetMap) MAP;
+	
+	/* =========================================================
+	 *                     USLOVI (CONDITIONS)
+	 * ========================================================= */
+	
+	Condition ::= (CondError) error
+	                {: parser.report_error("Greška u uslovu – preskačem do ')'", null); :}
+	             | (SingleCondTerm) CondTerm
+	             | (OrCondition) CondTerm OR Condition;
+	
+	CondTerm ::= (SingleCondFact) CondFact
+	           | (AndCondTerm) CondFact AND CondTerm;
+	
+	CondFact ::= (RelationalCond) Expr Relop Expr
+	           | (OnlyExprCond) Expr;
+	
+	/* =========================================================
+	 *                     INTERFEJS METODE
+	 * ========================================================= */
+	
+	InterfaceMethod ::= (AbstractMethodDecl) MethodTypeName LPAREN FormPars RPAREN SEMI
+	                  | (DefaultMethodDecl) MethodTypeName LPAREN FormPars RPAREN VarDeclList LBRACE StatementList RBRACE;
+

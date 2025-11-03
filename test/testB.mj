@@ -1,0 +1,102 @@
+
+// Test401 – NIVO B
+
+program test401
+
+int niz[];
+int rezultat;
+bool tacno;
+
+{
+    int dupliraj(int x) {
+        print(x);
+        print(' ');
+        return x * 2;
+    }
+
+    int zbir(int a, int b) {
+        return a + b;
+    }
+
+    void ispisiNiz(int arr[]) 
+        int i;
+    {
+        i = 0;
+        do {
+            print(arr[i]);
+            print(' ');
+        } while(i < 2, i++);
+        print(eol);
+    }
+
+    bool proveri(int x) {
+        if(x > 0 && x < 100) return true;
+        else return false;
+    }
+
+    void main()
+        int i;
+        int s;
+    {
+        tacno = false;
+        rezultat = 0;
+
+        // IF / ELSE
+        if(3 < 2) print(-1);
+        else print(1);
+        print(eol); // 1
+
+        // DO–WHILE sa break i continue
+        i = 0;
+        do {
+            if(i == 1) { i++; continue; }
+            if(i == 4) break;
+            print(i);
+            print(' ');
+            i++;
+        } while(i < 6);
+        print(eol); // 0 2 3
+
+        // RETURN sa izrazom
+        s = zbir(3, 7);
+        print(s); print(eol); // 10
+
+        // RETURN bez izraza
+        if(proveri(s)) tacno = true;
+        if(tacno) print(ord('T')); else print(ord('F'));
+        print(eol); // T
+
+        // NIZ i POZIVI FUNKCIJA
+        niz = new int[3];
+        niz[0] = 2;
+        niz[1] = 4;
+        niz[2] = 6;
+        ispisiNiz(niz); // 2 4 6
+
+        // MAP operator – svaki element *2
+        rezultat = dupliraj map niz; 
+        print(eol);
+        print(rezultat); // poslednji rezultat 12
+        print(eol);
+
+        // MAP ugnježden: dupliraj(dupliraj map niz)
+        rezultat = dupliraj(dupliraj map niz);
+        print(eol);
+        print(rezultat); // poslednji rezultat 24
+        print(eol);
+
+        // IF sa logičkim izrazima
+        if(rezultat == 24 && tacno || false) print(999);
+        else print(111);
+        print(eol);
+
+        // Test DO–WHILE sa složenim uslovom
+        i = 0;
+        do {
+            print(i);
+            print(' ');
+            i++;
+        } while(i < 3 && rezultat > 0);
+        print(eol);
+    }
+}
