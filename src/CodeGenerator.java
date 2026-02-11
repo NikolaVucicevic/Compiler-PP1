@@ -1872,7 +1872,7 @@ public class CodeGenerator extends VisitorAdaptor{
 		if (parent == null) return; // sigurnosna provera
 
 		SyntaxNode prev = parent;
-		boolean ooo = false;
+		boolean shouldInvertJump = false;
 
 		if (parent instanceof AndCondTerm) {
 			while (parent instanceof AndCondTerm && parent.getParent() != null) {
@@ -1910,11 +1910,11 @@ public class CodeGenerator extends VisitorAdaptor{
 					parent = parent.getParent();
 				}
 				parent = prev;
-				ooo = true;
+				shouldInvertJump = true;
 			}
 		}
 
-		if (ooo)
+		if (shouldInvertJump)
 			Code.putFalseJump(Code.inverse[op], 0);
 		else
 			Code.putFalseJump(op, 0);
@@ -1947,7 +1947,7 @@ public class CodeGenerator extends VisitorAdaptor{
 		SyntaxNode parent = condFact.getParent();
 		if (parent == null) return; // zaštita
 		SyntaxNode prev = parent;
-		boolean ooo = false;
+		boolean shouldInvertJump = false;
 
 		if (parent instanceof AndCondTerm) {
 			while (parent instanceof AndCondTerm && parent.getParent() != null) {
@@ -1985,12 +1985,12 @@ public class CodeGenerator extends VisitorAdaptor{
 					parent = parent.getParent();
 				}
 				parent = prev;
-				ooo = true;
+				shouldInvertJump = true;
 			}
 		}
 
 		Code.loadConst(1);
-		if (ooo)
+		if (shouldInvertJump)
 			Code.putFalseJump(Code.ne, 0);
 		else
 			Code.putFalseJump(Code.eq, 0);
