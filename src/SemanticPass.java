@@ -435,13 +435,13 @@ public class SemanticPass extends VisitorAdaptor {
             }
         }
 
-        Struct oleja = nizelementi.get(access.getDesignator());
+        Struct strArr = nizelementi.get(access.getDesignator());
         Obj member = null;
         if (baseObj.getType().getKind() != Struct.Array) {
             for (Obj o : baseObj.getType().getMembers())
                 if (o.getName().equals(access.getFieldName())) { member = o; break; }
         } else {
-            for (Obj o : oleja.getMembers())
+            for (Obj o : strArr.getMembers())
                 if (o.getName().equals(access.getFieldName())) { member = o; break; }
         }
 
